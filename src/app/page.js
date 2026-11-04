@@ -2,20 +2,28 @@ import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const { data: listings, error } = await supabase
+export default async function Home({ searchParams }) {
+  const { type } = await searchParams;
+
+  let query = supabase
     .from("listings")
     .select("*")
     .order("created_at", { ascending: false });
 
+  if (type === "Item" || type === "Service") {
+    query = query.eq("type", type);
+  }
+
+  const { data: listings, error } = await query;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="flex items-center justify-between bg-white px-6 py-4 shadow">
-        <h1 className="text-2xl font-bold text-green-600">My Market</h1>
+        <a href="/" className="text-2xl font-bold text-green-600">My Market</a>
         <div className="flex gap-4 text-sm font-medium">
-          <a href="#">Items</a>
-          <a href="#">Services</a>
-          <a href="/sell">Sell</a>
+         <a href="/?type=Item">Items</a>
+         <a href="/?type=Service">Services</a>
+         <a href="/sell">Sell</a>
         </div>
       </nav>
 
