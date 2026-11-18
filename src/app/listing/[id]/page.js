@@ -1,3 +1,4 @@
+import ShareButton from "@/components/ShareButton";
 import Gallery from "@/components/Gallery";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -6,6 +7,27 @@ import ReportButton from "@/components/ReportButton";
 import { toWhatsApp } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const { data: item } = await supabase
+    .from("listings")
+    .select("title, price, description, image_url, images")
+    .eq("id", id)
+    .single();
+
+  if (!item) return { title: "Listing not found | My Market" };
+
+  const image = item.images?.[0] || item.image_url;
+  const title = `${item.title} - KSh ${item.price.toLocaleString()}`;
+  const description = item.description || "Available on My Market";
+
+  return {
+    title: `${title} | My Market`,
+    description,
+    openGraph: { title, description, images: image ? [image] : undefined },
+  };
+}
 
 export default async function ListingPage({ params }) {
   const { id } = await params;
@@ -48,6 +70,8 @@ export default async function ListingPage({ params }) {
                 Contact seller on WhatsApp
               </a>
             )}
+            
+            <ShareButton title={item.title} />
             <ReportButton listingId={item.id} />
             <p className="mt-3 text-center text-xs text-gray-500">
               Meet in a public place and pay only after checking the item.
